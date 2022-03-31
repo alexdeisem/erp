@@ -2,30 +2,33 @@
 
 namespace App\Service\User;
 
+use App\DTO\User\CreateUserDTO;
 use App\Entity\User\User;
 use App\Repository\UserRepository;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService implements UserServiceInterface
 {
-    private UserRepository $userRepository;
+    public function __construct(
+        private UserRepository $userRepository,
+        private UserPasswordHasherInterface $passwordHasher
+    ) {}
 
-    public function __construct(UserRepository $userRepository)
+    public function createUser(CreateUserDTO $userDTO): User
     {
-        $this->userRepository = $userRepository;
-    }
-
-    public function createUser(Request $request): User
-    {
-        $userData = $request->toArray();
-
         $user = new User();
-        $user->setFirstName($userData['first_name']);
-        $user->setLastName($userData['last_name']);
-        $user->setLogin($userData['login']);
-        $user->setPassword($userData['password']);
-        $user->setEmail($userData['email']);
-        $user->setRoles($userData['roles']);
+        $user->setFirstName($userDTO->firstName);
+        $user->setLastName($userDTO->lastName);
+        $user->setLogin($userDTO->login);
+        $user->setEmail($userDTO->email);
+        $user->setRoles($userDTO->roles);
+
+        $hashedPassword = $this->passwordHasher->hashPassword(
+            $user,
+            $userDTO->password
+        );
+
+        $user->setPassword($hashedPassword);
 
         $this->userRepository->add($user);
 
