@@ -2,27 +2,27 @@
 
 namespace App\Controller\API\v1\User;
 
+use App\Controller\API\v1\BaseController;
 use App\DTO\User\CreateUserDTO;
-use App\Serializer\UserDenormalizer;
+use App\Serializer\UserSerializer;
 use App\Service\User\UserService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class UserController extends AbstractController
+class UserController extends BaseController
 {
     public function __construct(
         private UserService        $userService,
         private ValidatorInterface $validator,
-        private UserDenormalizer   $userDenormalizer,
+        private UserSerializer     $serializer,
     ) {}
 
     #[Route(path: 'api/v1/user', methods: ['POST'])]
     public function store(Request $request): Response
     {
-        $createUserDTO = $this->userDenormalizer->denormalize($request->toArray(), CreateUserDTO::class);
+        $createUserDTO = $this->serializer->deserialize($request->toArray(), CreateUserDTO::class, 'array');
         $errors = $this->validator->validate($createUserDTO);
 
         if (count($errors)) {
@@ -31,6 +31,6 @@ class UserController extends AbstractController
 
         $user = $this->userService->createUser($createUserDTO);
 
-        return $this->json([], 201);
+        return $this->jsonResponse($this->serializer->serialize($user, 'json'), 201);
     }
 }
