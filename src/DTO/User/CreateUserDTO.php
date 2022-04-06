@@ -2,8 +2,10 @@
 
 namespace App\DTO\User;
 
+use App\Entity\User\User;
 use App\Entity\User\UserRoles;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator as AcmeAssert;
 
 class CreateUserDTO
 {
@@ -17,6 +19,7 @@ class CreateUserDTO
 
     #[Assert\NotBlank]
     #[Assert\Length(min: 6, max: 50)]
+    #[AcmeAssert\Unique(entity: User::class, column: 'login')]
     public string $login;
 
     #[Assert\NotBlank]
@@ -26,6 +29,7 @@ class CreateUserDTO
 
     #[Assert\Email]
     #[Assert\Length(min: 8, max: 75)]
+    #[AcmeAssert\Unique(entity: User::class, column: 'email')]
     public string $email;
 
     #[Assert\NotBlank]
